@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wallet - Crypto Trading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+      .crypto-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Include Sidebar (same as dashboard) -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
+      <div
+        class="flex items-center justify-center h-16 bg-gradient-to-r from-blue-600 to-purple-600"
+      >
+        <h1 class="text-white text-xl font-bold">
+          <i class="fas fa-chart-line mr-2"></i>Crypto Hub
+        </h1>
+      </div>
+      <nav class="flex-1 px-4 py-6 space-y-2">
+        <a
+          href="index.html"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+        >
+          <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+        </a>
+        <a
+          href="wallet.html"
+          class="gradient-bg flex items-center px-4 py-3 text-white rounded-lg"
+        >
+          <i class="fas fa-wallet mr-3"></i>Wallet
+        </a>
+        <a
+          href="trading.html"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+        >
+          <i class="fas fa-exchange-alt mr-3"></i>Trading
+        </a>
+        <a
+          href="rebalance.html"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+        >
+          <i class="fas fa-balance-scale mr-3"></i>Rebalance
+        </a>
+        <a
+          href="orders.html"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+        >
+          <i class="fas fa-list-alt mr-3"></i>Orders
+        </a>
+        <a
+          href="setting.html"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+        >
+          <i class="fas fa-cog mr-3"></i>Settings
+        </a>
+      </nav>
+    </div>
+
+    <div class="ml-64 min-h-screen">
+      <!-- Header -->
+      <header class="bg-white shadow-sm border-b">
+        <div class="px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-800">Wallet</h2>
+              <p class="text-gray-600">จัดการสินทรัพย์และยอดคงเหลือ</p>
+            </div>
+            <div class="flex space-x-3">
+              <button
+                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              >
+                <i class="fas fa-plus mr-2"></i>Deposit
+              </button>
+              <button
+                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+              >
+                <i class="fas fa-minus mr-2"></i>Withdraw
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <!-- Total Balance Card -->
+        <div
+          class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-6 text-white mb-6"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-blue-100 mb-2">Total Portfolio Value</p>
+              <h3 class="text-3xl font-bold">$125,432.50</h3>
+              <p class="text-blue-100 mt-2">
+                <i class="fas fa-arrow-up mr-1"></i>
+                +12.5% ($13,682.45) Last 24h
+              </p>
+            </div>
+            <div class="text-right">
+              <p class="text-blue-100">Available Balance</p>
+              <p class="text-xl font-semibold">$8,520.30</p>
+              <p class="text-blue-100 text-sm mt-1">USDT</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assets Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          <!-- Bitcoin Card -->
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center">
+                <div class="crypto-icon bg-yellow-500 mr-3">₿</div>
+                <div>
+                  <h4 class="font-semibold text-gray-800">Bitcoin</h4>
+                  <p class="text-gray-500 text-sm">BTC</p>
+                </div>
+              </div>
+              <div class="text-green-500 text-sm">
+                <i class="fas fa-arrow-up"></i> +5.2%
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Balance:</span>
+                <span class="font-semibold">1.2847 BTC</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Value:</span>
+                <span class="font-semibold">$56,740.30</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Price:</span>
+                <span class="text-gray-800">$44,156.80</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ethereum Card -->
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center">
+                <div class="crypto-icon bg-blue-600 mr-3">Ξ</div>
+                <div>
+                  <h4 class="font-semibold text-gray-800">Ethereum</h4>
+                  <p class="text-gray-500 text-sm">ETH</p>
+                </div>
+              </div>
+              <div class="text-red-500 text-sm">
+                <i class="fas fa-arrow-down"></i> -2.1%
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Balance:</span>
+                <span class="font-semibold">14.521 ETH</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Value:</span>
+                <span class="font-semibold">$40,263.80</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Price:</span>
+                <span class="text-gray-800">$2,772.15</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- USDT Card -->
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center">
+                <div class="crypto-icon bg-green-500 mr-3">₮</div>
+                <div>
+                  <h4 class="font-semibold text-gray-800">Tether</h4>
+                  <p class="text-gray-500 text-sm">USDT</p>
+                </div>
+              </div>
+              <div class="text-gray-500 text-sm">
+                <i class="fas fa-minus"></i> 0.0%
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Balance:</span>
+                <span class="font-semibold">19,191.18 USDT</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Value:</span>
+                <span class="font-semibold">$19,191.18</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Price:</span>
+                <span class="text-gray-800">$1.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="bg-white rounded-xl shadow-sm">
+          <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-800">
+                Transaction History
+              </h3>
+              <div class="flex space-x-2">
+                <select class="text-sm border rounded-lg px-3 py-1">
+                  <option>All Types</option>
+                  <option>Deposit</option>
+                  <option>Withdrawal</option>
+                  <option>Trading</option>
+                </select>
+                <button
+                  class="text-sm bg-gray-100 px-3 py-1 rounded-lg hover:bg-gray-200"
+                >
+                  <i class="fas fa-download mr-1"></i>Export
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                  >
+                    Type
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                  >
+                    Asset
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                  >
+                    Amount
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                  >
+                    Status
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                  >
+                    Time
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                  >
+                    TxID
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
+                    >
+                      <i class="fas fa-plus mr-1"></i>Deposit
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="crypto-icon bg-yellow-500 text-xs mr-2">
+                        ₿
+                      </div>
+                      <span>BTC</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    0.0025 BTC
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
+                      >Completed</span
+                    >
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    2 hours ago
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                    <a href="#" class="hover:underline">0x1a2b3c...</a>
+                  </td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full"
+                    >
+                      <i class="fas fa-minus mr-1"></i>Withdraw
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="crypto-icon bg-blue-600 text-xs mr-2">Ξ</div>
+                      <span>ETH</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">1.5 ETH</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full"
+                      >Pending</span
+                    >
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    5 hours ago
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                    <a href="#" class="hover:underline">0x4d5e6f...</a>
+                  </td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
+                    >
+                      <i class="fas fa-exchange-alt mr-1"></i>Trade
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="crypto-icon bg-green-500 text-xs mr-2">₮</div>
+                      <span>USDT</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    5,000 USDT
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
+                      >Completed</span
+                    >
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    1 day ago
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                    <a href="#" class="hover:underline">0x7g8h9i...</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orders - Crypto Trading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-2px);
+      }
+      .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .status-filled {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .status-partial {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
+      <div
+        class="flex items-center justify-center h-16 bg-gradient-to-r from-blue-600 to-purple-600"
+      >
+        <h1 class="text-white text-xl font-bold">
+          <i class="fas fa-chart-line mr-2"></i>Crypto Hub
+        </h1>
+      </div>
+      <nav class="flex-1 px-4 py-6 space-y-2">
+        <a
+          href="index.html"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+        >
+          <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+        </a>
+        <a
+          href="wallet.html"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+        >
+          <i class="fas fa-wallet mr-3"></i>Wallet
+        </a>
+        <a
+          href="trading.html"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+        >
+          <i class="fas fa-exchange-alt mr-3"></i>Trading
+        </a>
+        <a
+          href="rebalance.html"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+        >
+          <i class="fas fa-balance-scale mr-3"></i>Rebalance
+        </a>
+        <a
+          href="orders.html"
+          class="gradient-bg flex items-center px-4 py-3 text-white rounded-lg"
+        >
+          <i class="fas fa-list-alt mr-3"></i>Orders
+        </a>
+        <a
+          href="setting.html"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+        >
+          <i class="fas fa-cog mr-3"></i>Settings
+        </a>
+      </nav>
+    </div>
+
+    <div class="ml-64 min-h-screen">
+      <!-- Header -->
+      <header class="bg-white shadow-sm border-b">
+        <div class="px-6 py-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold text-gray-800">Orders</h2>
+              <p class="text-gray-600">จัดการคำสั่งซื้อขายทั้งหมด</p>
+            </div>
+            <div class="flex space-x-3">
+              <button
+                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+              >
+                <i class="fas fa-times mr-2"></i>Cancel All
+              </button>
+              <button
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                <i class="fas fa-plus mr-2"></i>New Order
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <!-- Order Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">Total Orders</p>
+                <p class="text-2xl font-bold text-gray-800">147</p>
+              </div>
+              <div class="bg-blue-100 p-3 rounded-full">
+                <i class="fas fa-list-alt text-blue-600 text-xl"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">Active Orders</p>
+                <p class="text-2xl font-bold text-gray-800">24</p>
+              </div>
+              <div class="bg-yellow-100 p-3 rounded-full">
+                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">Filled Orders</p>
+                <p class="text-2xl font-bold text-gray-800">108</p>
+              </div>
+              <div class="bg-green-100 p-3 rounded-full">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-gray-500 text-sm">Cancelled</p>
+                <p class="text-2xl font-bold text-gray-800">15</p>
+              </div>
+              <div class="bg-red-100 p-3 rounded-full">
+                <i class="fas fa-times-circle text-red-600 text-xl"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Filters -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <div class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center">
+              <label class="text-sm text-gray-600 mr-2">Status:</label>
+              <select
+                class="text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="filled">Filled</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="partial">Partial Filled</option>
+              </select>
+            </div>
+
+            <div class="flex items-center">
+              <label class="text-sm text-gray-600 mr-2">Pair:</label>
+              <select
+                class="text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Pairs</option>
+                <option value="BTCUSDT">BTC/USDT</option>
+                <option value="ETHUSDT">ETH/USDT</option>
+                <option value="BNBUSDT">BNB/USDT</option>
+              </select>
+            </div>
+
+            <div class="flex items-center">
+              <label class="text-sm text-gray-600 mr-2">Type:</label>
+              <select
+                class="text-sm border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Types</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

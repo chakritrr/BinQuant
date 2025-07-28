@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading - Crypto Trading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+        .price-up { color: #10b981; }
+        .price-down { color: #ef4444; }
+        .buy-btn { background: linear-gradient(135deg, #10b981, #059669); }
+        .sell-btn { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
+        <div class="flex items-center justify-center h-16 bg-gradient-to-r from-blue-600 to-purple-600">
+            <h1 class="text-white text-xl font-bold">
+                <i class="fas fa-chart-line mr-2"></i>Crypto Hub
+            </h1>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <a href="index.html" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+                <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+            </a>
+            <a href="wallet.html" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+                <i class="fas fa-wallet mr-3"></i>Wallet
+            </a>
+            <a href="trading.html" class="gradient-bg flex items-center px-4 py-3 text-white rounded-lg">
+                <i class="fas fa-exchange-alt mr-3"></i>Trading
+            </a>
+            <a href="rebalance.html" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+                <i class="fas fa-balance-scale mr-3"></i>Rebalance
+            </a>
+            <a href="orders.html" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+                <i class="fas fa-list-alt mr-3"></i>Orders
+            </a>
+            <a href="setting.html" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg">
+                <i class="fas fa-cog mr-3"></i>Settings
+            </a>
+        </nav>
+    </div>
+
+    <div class="ml-64 min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="px-6 py-4">
+                <h2 class="text-2xl font-bold text-gray-800">Trading</h2>
+                <p class="text-gray-600">ซื้อขาย Cryptocurrency</p>
+            </div>
+        </header>
+
+        <main class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Market Prices -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Market Prices</h3>
+                            <div class="flex space-x-2">
+                                <button class="text-sm px-3 py-1 bg-blue-100 text-blue-600 rounded-lg">Favorites</button>
+                                <button class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-lg">All</button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="text-xs text-gray-500 uppercase">
+                                    <tr>
+                                        <th class="text-left py-2">Pair</th>
+                                        <th class="text-right py-2">Price</th>
+                                        <th class="text-right py-2">24h Change</th>
+                                        <th class="text-right py-2">Volume</th>
+                                        <th class="text-center py-2">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="py-3">
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white text-xs mr-3">₿</div>
+                                                <div>
+                                                    <div class="font-medium">BTC/USDT</div>
+                                                    <div class="text-xs text-gray-500">Bitcoin</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-right py-3">
+                                            <div class="font-medium">$44,156.80</div>
+                                        </td>
+                                        <td class="text-right py-3">
+                                            <span class="price-up font-medium">+5.2%</span>
+                                        </td>
+                                        <td class="text-right py-3">
+                                            <div class="text-sm">$2.1B</div>
+                                        </td>
+                                        <td class="text-center py-3">
+                                            <button class="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Trade</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="py-3">
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs mr-3">Ξ</div>
+                                                <div>
+                                                    <div class="font-medium">ETH/USDT</div>
+                                                    <div class="text-xs text-gray-500">Ethereum</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-right py-3">
+                                            <div class="font-medium">$2,772.15</div>
+                                        </td>
+                                        <td class="text-right py-3">
+                                            <span class="price-down font-medium">-2.1%</span>
+                                        </td>
+                                        <td class="text-right py-3">
+                                            <div class="text-sm">$1.8B</div>
+                                        </td>
+                                        <td class="text-center py-3">
+                                            <button class="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Trade</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="py-3">
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center text-white text-xs mr-3">B</div>
+                                                <div>
+                                                    <div class="font-medium">BNB/USDT</div>
+                                                    <div class="text-xs text-gray-500">Binance Coin</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-right py-3">
+                                            <div class="font-medium">$310.50</div>
+                                        </td>
+                                        <td class="text-right py-3">
+                                            <span class="price-up font-medium">+1.8%</span>
+                                        </td>
+                                        <td class="text-right py-3">
+                                            <div class="text-sm">$890M</div>
+                                        </td>
+                                        <td class="text-center py-3">
+                                            <button class="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Trade</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Order Book -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Order Book - BTC/USDT</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Sell Orders -->
+                            <div>
+                                <h4 class="text-sm font-medium text-red-600 mb-2">Sell Orders</h4>
+                                <div class="space-y-1 text-xs">
+                                    <div class="flex justify-between py-1 bg-red-50 px-2 rounded">
+                                        <span>44,180.50</span>
+                                        <span>0.025</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 bg-red-50 px-2 rounded">
+                                        <span>44,175.20</span>
+                                        <span>0.048</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 bg-red-50 px-2 rounded">
+                                        <span>44,170.80</span>
+                                        <span>0.033</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Buy Orders -->
+                            <div>
+                                <h4 class="text-sm font-medium text-green-600 mb-2">Buy Orders</h4>
+                                <div class="space-y-1 text-xs">
+                                    <div class="flex justify-between py-1 bg-green-50 px-2 rounded">
+                                        <span>44,150.30</span>
+                                        <span>0.042</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 bg-green-50 px-2 rounded">
+                                        <span>44,145.60</span>
+                                        <span>0.029</span>
+                                    </div>
+                                    <div class="flex justify-between py-1 bg-green-50 px-2 rounded">
+                                        <span>44,140.90</span>
+                                        <span>0.051</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trading Panel -->
+                <div class="space-y-6">
+                    <!-- Quick Trade -->
+                    <div class="bg-white rounded-xl shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Trade</h3>
+                        
+                        <!-- Pair Selection -->
+                        <div class="mb-4">
+                            <select class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option>BTC/USDT</option>
+                                <option>ETH/USDT</option>
+                                <option>BNB/USDT</option>
+                            </select>
+                        </div>
+
+                        <!-- Order Type Tabs -->
+                        <div class="flex border-b mb-4">
+                            <button class="flex-1 py-2 text-center border-b-2 border-blue-600 text-blue-600 font-medium">Market</button>
+                            <button class="flex-1 py-2 text-center text-gray-500">Limit</button>
+                            <button class="flex-1 py-2 text-center text-
