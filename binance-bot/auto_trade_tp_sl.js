@@ -21,6 +21,11 @@ const uri = "mongodb://localhost:27017";
 const client = new MongoClient(uri);
 let db;
 
+// == CUSTOM LOSS STREAK SETTINGS ==
+const LOSS_STREAK_SIZES = [1.0, 1.5, 2.5]; // ขนาด order แต่ละ streak (ใน USD)
+const MAX_LOSS_STREAK = LOSS_STREAK_SIZES.length; // จำนวนครั้งสูงสุด = 3
+const LOSS_STREAK_ENABLED = true;
+
 // In-memory state (เร็วที่สุด)
 let currentState = {
   hasPosition: false,
@@ -29,6 +34,10 @@ let currentState = {
   entryPrice: null,
   entryTime: null,
   buyOrderId: null,
+  currentLossStreak: 0, // 0, 1, 2 (index ของ array)
+  currentOrderValue: LOSS_STREAK_SIZES[0], // $1.00, $1.50, $2.50
+  totalLossAmount: 0, // จำนวนเงินที่เสียไปแล้ว
+  lastTradeResult: null,
 };
 
 // == MongoDB Functions ==
