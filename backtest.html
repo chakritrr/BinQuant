@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IQ Option Backtest</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+      }
+
+      .header h1 {
+        color: #4a5568;
+        margin-bottom: 10px;
+      }
+
+      .controls {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .control-group label {
+        font-weight: 600;
+        color: #2d3748;
+      }
+
+      select,
+      input,
+      button {
+        padding: 10px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+
+      select:focus,
+      input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      button {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        padding: 12px 24px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+      }
+
+      .results {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .result-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #667eea;
+      }
+
+      .result-card h3 {
+        margin: 0 0 10px 0;
+        color: #2d3748;
+        font-size: 16px;
+      }
+
+      .result-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .chart-container {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      .chart {
+        width: 100%;
+        height: 400px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .trade-log {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .trade-entry {
+        padding: 8px 12px;
+        margin: 5px 0;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      .trade-win {
+        background: #e6fffa;
+        color: #234e52;
+        border-left: 4px solid #38b2ac;
+      }
+
+      .trade-loss {
+        background: #fed7d7;
+        color: #742a2a;
+        border-left: 4px solid #e53e3e;
+      }
+
+      .streak-info {
+        background: #fef5e7;
+        color: #744210;
+        border-left: 4px solid #ed8936;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎯 IQ Option Backtest Tool</h1>
+        <p>ทดสอบกลยุทธ์การเทรด Binary Options โดยใช้เงื่อนไข EMA15</p>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>คู่เทรด:</label>
+          <select id="currencyPair">
+            <option value="EURUSD">EUR/USD</option>
+            <option value="GBPUSD">GBP/USD</option>
+            <option value="USDJPY">USD/JPY</option>
+            <option value="AUDUSD">AUD/USD</option>
+            <option value="USDCAD">USD/CAD</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>ไทม์เฟรม:</label>
+          <select id="timeframe">
+            <option value="1">1 นาที</option>
+            <option value="5">5 นาที</option>
+            <option value="15">15 นาที</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>เปอร์เซ็นต์ชนะ (%):</label>
+          <input type="number" id="winRate" value="65" min="50" max="90" />
+        </div>
+
+        <button id="runBacktest">🚀 เริ่ม Backtest</button>
+      </div>
+
+      <div id="loading" class="loading" style="display: none">
+        <h3>⏳ กำลังคำนวณ...</h3>
+        <p>โปรดรอสักครู่ระหว่างการประมวลผลข้อมูล</p>
+      </div>
+
+      <div id="results" style="display: none">
+        <div class="results">
+          <div class="result-card">
+            <h3>📊 สัญญาณทั้งหมด</h3>
+            <div class="result-value" id="totalSignals">0</div>
+          </div>
+
+          <div class="result-card">
+            <h3>✅ Win Rate</h3>
+            <div class="result-value" id="winRateResult">0%</div>
+          </div>
+
+          <div class="result-card">
+            <h3>🏆 ชนะติดต่อกันมากสุด</h3>
+            <div class="result-value" id="maxWinStreak">0</div>
+          </div>
+
+          <div class="result-card">
+            <h3>💀 แพ้ติดต่อกันมากสุด</h3>
+            <div class="result-value" id="maxLossStreak" style="color: #e53e3e">
+              0
+            </div>
+          </div>
+
+          <div class="result-card">
+            <h3>💰 P&L จำลอง</h3>
+            <div class="result-value" id="totalPnL">0</div>
+          </div>
+
+          <div class="result-card">
+            <h3>🎯 คะแนนชนะตามเงื่อนไข</h3>
+            <div class="result-value" id="conditionalWins">0</div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3>📈 กราฟผลการเทรด</h3>
+          <canvas id="pnlChart" class="chart"></canvas>
+        </div>
+
+        <div class="trade-log">
+          <h3>📋 บันทึกการเทรด (20 รายการล่าสุด)</h3>
+          <div id="tradeEntries"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      class BacktestEngine {
+        constructor() {
+          this.data = [];
+          this.trades = [];
+          this.results = {
+            totalSignals: 0,
+            wins: 0,
+            losses: 0,
+            maxWinStreak: 0,
+            maxLossStreak: 0,
+            currentStreak: 0,
+            streakType: null,
+            conditionalWins: 0,
+            consecutiveWins: 0,
+            totalPnL: 0,
+          };
+        }
+
+        generatePriceData(pair, days = 120) {
+          const data = [];
+          const basePrice = this.getBasePriceForPair(pair);
+          let currentPrice = basePrice;
+          const volatility = 0.001; // 0.1% volatility per candle
+
+          // Generate data for the specified number of days
+          const candlesPerDay = 1440; // 1-minute candles
+          const totalCandles = days * candlesPerDay;
+
+          for (let i = 0; i < totalCandles; i++) {
+            // Generate OHLC data
+            const change = (Math.random() - 0.5) * volatility * currentPrice;
+            const open = currentPrice;
+            const close = open + change;
+
+            // Add some randomness to high/low
+            const range =
+              Math.abs(change) + Math.random() * 0.0005 * currentPrice;
+            const high = Math.max(open, close) + range * Math.random();
+            const low = Math.min(open, close) - range * Math.random();
+
+            data.push({
+              timestamp: Date.now() - (totalCandles - i) * 60000,
+              open: parseFloat(open.toFixed(5)),
+              high: parseFloat(high.toFixed(5)),
+              low: parseFloat(low.toFixed(5)),
+              close: parseFloat(close.toFixed(5)),
+            });
+
+            currentPrice = close;
+          }
+
+          return data;
+        }
+
+        getBasePriceForPair(pair) {
+          const basePrices = {
+            EURUSD: 1.085,
+            GBPUSD: 1.275,
+            USDJPY: 149.5,
+            AUDUSD: 0.665,
+            USDCAD: 1.358,
+          };
+          return basePrices[pair] || 1.0;
+        }
+
+        calculateEMA(data, period) {
+          const ema = [];
+          const multiplier = 2 / (period + 1);
+
+          // First EMA is simple average
+          let sum = 0;
+          for (let i = 0; i < period && i < data.length; i++) {
+            sum += data[i].close;
+          }
+          ema[period - 1] = sum / period;
+
+          // Calculate subsequent EMAs
+          for (let i = period; i < data.length; i++) {
+            ema[i] = (data[i].close - ema[i - 1]) * multiplier + ema[i - 1];
+          }
+
+          return ema;
+        }
+
+        generateTradeSignal(candle, ema15Value) {
+          // เงื่อนไข: ถ้าราคาต่ำสุดของแท่งก่อนหน้าอยู่เหนือ EMA15 ให้ Buy
+          return candle.low > ema15Value;
+        }
+
+        simulateTradeOutcome(winRate) {
+          return Math.random() * 100 < winRate;
+        }
+
+        runBacktest(pair, timeframe, winRate) {
+          console.log("Starting backtest for", pair);
+
+          // Generate price data
+          this.data = this.generatePriceData(pair, 120);
+
+          // Calculate EMA15
+          const ema15 = this.calculateEMA(this.data, 15);
+
+          // Reset results
+          this.results = {
+            totalSignals: 0,
+            wins: 0,
+            losses: 0,
+            maxWinStreak: 0,
+            maxLossStreak: 0,
+            currentStreak: 0,
+            streakType: null,
+            conditionalWins: 0,
+            consecutiveWins: 0,
+            totalPnL: 0,
+            pnlHistory: [],
+          };
+
+          this.trades = [];
+
+          // Process each candle starting from when EMA is available
+          for (let i = 15; i < this.data.length - 1; i++) {
+            const currentCandle = this.data[i];
+            const nextCandle = this.data[i + 1];
+            const emaValue = ema15[i];
+
+            // Check for trade signal (using previous candle's data)
+            if (this.generateTradeSignal(currentCandle, emaValue)) {
+              this.results.totalSignals++;
+
+              // Simulate trade outcome
+              const isWin = this.simulateTradeOutcome(winRate);
+              const pnl = isWin ? 0.8 : -1; // 80% payout if win, -100% if loss
+
+              this.results.totalPnL += pnl;
+              this.results.pnlHistory.push(this.results.totalPnL);
+
+              const trade = {
+                timestamp: currentCandle.timestamp,
+                entryPrice: currentCandle.close,
+                exitPrice: nextCandle.close,
+                emaValue: emaValue,
+                isWin: isWin,
+                pnl: pnl,
+              };
+
+              this.trades.push(trade);
+
+              // Update win/loss counts and streaks
+              if (isWin) {
+                this.results.wins++;
+                this.consecutiveWins++;
+
+                if (this.results.streakType !== "win") {
+                  this.results.streakType = "win";
+                  this.results.currentStreak = 1;
+                } else {
+                  this.results.currentStreak++;
+                }
+
+                this.results.maxWinStreak = Math.max(
+                  this.results.maxWinStreak,
+                  this.results.currentStreak
+                );
+
+                // Check conditional win (2 consecutive wins)
+                if (this.consecutiveWins >= 2) {
+                  this.results.conditionalWins++;
+                  this.consecutiveWins = 0; // Reset after counting
+                }
+              } else {
+                this.results.losses++;
+                this.consecutiveWins = 0; // Reset consecutive wins
+
+                if (this.results.streakType !== "loss") {
+                  this.results.streakType = "loss";
+                  this.results.currentStreak = 1;
+                } else {
+                  this.results.currentStreak++;
+                }
+
+                this.results.maxLossStreak = Math.max(
+                  this.results.maxLossStreak,
+                  this.results.currentStreak
+                );
+              }
+            }
+          }
+
+          console.log("Backtest completed:", this.results);
+          return this.results;
+        }
+      }
+
+      function drawPnLChart(pnlHistory) {
+        const canvas = document.getElementById("pnlChart");
+        const ctx = canvas.getContext("2d");
+
+        // Set canvas size
+        canvas.width = canvas.offsetWidth;
+        canvas.height = 400;
+
+        if (pnlHistory.length === 0) return;
+
+        const width = canvas.width;
+        const height = canvas.height;
+        const padding = 40;
+
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+
+        // Find min/max values
+        const minPnL = Math.min(0, Math.min(...pnlHistory));
+        const maxPnL = Math.max(0, Math.max(...pnlHistory));
+        const range = maxPnL - minPnL || 1;
+
+        // Draw grid
+        ctx.strokeStyle = "#e2e8f0";
+        ctx.lineWidth = 1;
+
+        // Horizontal grid lines
+        for (let i = 0; i <= 5; i++) {
+          const y = padding + ((height - 2 * padding) * i) / 5;
+          ctx.beginPath();
+          ctx.moveTo(padding, y);
+          ctx.lineTo(width - padding, y);
+          ctx.stroke();
+
+          // Labels
+          const value = maxPnL - (range * i) / 5;
+          ctx.fillStyle = "#666";
+          ctx.font = "12px Arial";
+          ctx.textAlign = "right";
+          ctx.fillText(value.toFixed(1), padding - 5, y + 4);
+        }
+
+        // Draw zero line
+        if (minPnL < 0 && maxPnL > 0) {
+          const zeroY = padding + (height - 2 * padding) * (maxPnL / range);
+          ctx.strokeStyle = "#333";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(padding, zeroY);
+          ctx.lineTo(width - padding, zeroY);
+          ctx.stroke();
+        }
+
+        // Draw PnL line
+        ctx.strokeStyle = "#667eea";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+
+        for (let i = 0; i < pnlHistory.length; i++) {
+          const x =
+            padding + ((width - 2 * padding) * i) / (pnlHistory.length - 1);
+          const y =
+            padding +
+            ((height - 2 * padding) * (maxPnL - pnlHistory[i])) / range;
+
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+
+        ctx.stroke();
+
+        // Fill area under curve
+        ctx.fillStyle = "rgba(102, 126, 234, 0.1)";
+        const zeroY = padding + (height - 2 * padding) * (maxPnL / range);
+
+        for (let i = 0; i < pnlHistory.length; i++) {
+          const x =
+            padding + ((width - 2 * padding) * i) / (pnlHistory.length - 1);
+          const y =
+            padding +
+            ((height - 2 * padding) * (maxPnL - pnlHistory[i])) / range;
+
+          if (i === 0) {
+            ctx.beginPath();
+            ctx.moveTo(x, zeroY);
+            ctx.lineTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+
+          if (i === pnlHistory.length - 1) {
+            ctx.lineTo(x, zeroY);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+      }
+
+      function displayResults(results, trades) {
+        // Update result cards
+        document.getElementById("totalSignals").textContent =
+          results.totalSignals;
+        document.getElementById("winRateResult").textContent =
+          ((results.wins / results.totalSignals) * 100).toFixed(1) + "%";
+        document.getElementById("maxWinStreak").textContent =
+          results.maxWinStreak;
+        document.getElementById("maxLossStreak").textContent =
+          results.maxLossStreak;
+        document.getElementById("totalPnL").textContent =
+          results.totalPnL.toFixed(2);
+        document.getElementById("conditionalWins").textContent =
+          results.conditionalWins;
+
+        // Draw chart
+        drawPnLChart(results.pnlHistory || []);
+
+        // Display recent trades
+        const tradeEntries = document.getElementById("tradeEntries");
+        tradeEntries.innerHTML = "";
+
+        const recentTrades = trades.slice(-20).reverse();
+
+        recentTrades.forEach((trade, index) => {
+          const entry = document.createElement("div");
+          entry.className = `trade-entry ${
+            trade.isWin ? "trade-win" : "trade-loss"
+          }`;
+
+          const date = new Date(trade.timestamp).toLocaleString("th-TH");
+          const direction = trade.exitPrice > trade.entryPrice ? "📈" : "📉";
+
+          entry.innerHTML = `
+                    <strong>${
+                      trade.isWin ? "✅ WIN" : "❌ LOSS"
+                    }</strong> ${direction} 
+                    Entry: ${trade.entryPrice.toFixed(5)} | 
+                    Exit: ${trade.exitPrice.toFixed(5)} | 
+                    EMA15: ${trade.emaValue.toFixed(5)} | 
+                    P&L: ${trade.pnl.toFixed(2)} | 
+                    ${date}
+                `;
+
+          tradeEntries.appendChild(entry);
+        });
+
+        // Add streak information
+        if (results.maxLossStreak > 0) {
+          const streakInfo = document.createElement("div");
+          streakInfo.className = "trade-entry streak-info";
+          streakInfo.innerHTML = `
+                    <strong>⚠️ สถิติการแพ้ติดต่อกัน:</strong> 
+                    แพ้ติดต่อกันสูงสุด ${results.maxLossStreak} ครั้ง | 
+                    ชนะติดต่อกันสูงสุด ${results.maxWinStreak} ครั้ง | 
+                    คะแนนชนะตามเงื่อนไข: ${results.conditionalWins} ครั้ง
+                `;
+          tradeEntries.insertBefore(streakInfo, tradeEntries.firstChild);
+        }
+      }
+
+      // Event listeners
+      document
+        .getElementById("runBacktest")
+        .addEventListener("click", async function () {
+          const pair = document.getElementById("currencyPair").value;
+          const timeframe = parseInt(
+            document.getElementById("timeframe").value
+          );
+          const winRate = parseInt(document.getElementById("winRate").value);
+
+          // Show loading
+          document.getElementById("loading").style.display = "block";
+          document.getElementById("results").style.display = "none";
+
+          // Wait a bit to show loading animation
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          try {
+            const engine = new BacktestEngine();
+            const results = engine.runBacktest(pair, timeframe, winRate);
+
+            // Display results
+            displayResults(results, engine.trades);
+
+            // Show results
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("results").style.display = "block";
+          } catch (error) {
+            console.error("Backtest error:", error);
+            alert("เกิดข้อผิดพลาดในการทำ backtest: " + error.message);
+            document.getElementById("loading").style.display = "none";
+          }
+        });
+
+      // Run initial backtest
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("runBacktest").click();
+      });
+    </script>
+  </body>
+</html>

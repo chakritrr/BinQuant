@@ -2,15 +2,21 @@ import WebSocket from "ws";
 import axios from "axios";
 import crypto from "crypto";
 import { MongoClient } from "mongodb";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 // == CONFIG ==
 const BASE_URL = "https://testnet.binancefuture.com";
 const SYMBOL = "BTCUSDT";
-const QUANTITY = 0.1;
+const BASE_QUANTITY = 0.1; // Base quantity for first trade
 const TARGET_PRICE = 600000;
 const TP_PERCENT = 0.1; // +10%
 const SL_PERCENT = 0.05; // -5%
 const LEVERAGE = 20;
+const URI = process.env.MONGODB_URI;
+const DB_NAME = process.env.MONGODB_DB_NAME;
 
 // API Keys (ต้องตั้งใน environment variables)
 const API_KEY = process.env.BINANCE_API_KEY || "your_api_key_here";
@@ -21,7 +27,7 @@ const uri = "mongodb://localhost:27017";
 const client = new MongoClient(uri);
 let db;
 
-// == CUSTOM LOSS STREAK SETTINGS ==
+// == LOSS STREAK SETTINGS ==
 const LOSS_STREAK_SIZES = [1.0, 1.5, 2.5]; // ขนาด order แต่ละ streak (ใน USD)
 const MAX_LOSS_STREAK = LOSS_STREAK_SIZES.length; // จำนวนครั้งสูงสุด = 3
 const LOSS_STREAK_ENABLED = true;
@@ -39,6 +45,52 @@ let currentState = {
   totalLossAmount: 0, // จำนวนเงินที่เสียไปแล้ว
   lastTradeResult: null,
 };
+
+// == Helper Functions ==
+function calculateQuantityFromUSD(usdValue, btcPrice) {
+  // คำนวณ quantity จาก USD value และราคา BTC ปัจจุบัน
+  const quantity = usdValue / btcPrice;
+  return parseFloat(quantity.toFixed(6)); // ปัดให้เหลือ 6 ตำแหน่ง
+}
+
+function updateLossStreak(tradeResult) {
+  currentState.lastTradeResult = tradeResult;
+
+  if (tradeResult === "WIN") {
+    console.log("🎉 WIN! Resetting loss streak to 0");
+    currentState.currentLossStreak = 0;
+    currentState.currentOrderValue = LOSS_STREAK_SIZES[0];
+    currentState.totalLossAmount = 0;
+  } else if (tradeResult === "LOSS") {
+    const lossAmount = currentState.currentOrderValue;
+    currentState.totalLossAmount += lossAmount;
+
+    console.log(
+      `💸 LOSS! Lost $${lossAmount} (Total lost: $${currentState.totalLossAmount})`
+    );
+
+    if (
+      LOSS_STREAK_ENABLED &&
+      currentState.currentLossStreak < MAX_LOSS_STREAK - 1
+    ) {
+      currentState.currentLossStreak++;
+      currentState.currentOrderValue =
+        LOSS_STREAK_SIZES[currentState.currentLossStreak];
+      console.log(
+        `📈 Loss streak increased to ${
+          currentState.currentLossStreak + 1
+        }, next order: $${currentState.currentOrderValue}`
+      );
+    } else {
+      console.log(
+        `⚠️ Max loss streak reached (${MAX_LOSS_STREAK}), keeping same order size`
+      );
+    }
+  }
+
+  // บันทึก state
+  saveState(currentState);
+}
 
 // == MongoDB Functions ==
 async function initDb() {
@@ -81,8 +133,17 @@ async function loadState() {
         entryPrice: saved.entryPrice || null,
         entryTime: saved.entryTime || null,
         buyOrderId: saved.buyOrderId || null,
+        currentLossStreak: saved.currentLossStreak || 0,
+        currentOrderValue: saved.currentOrderValue || LOSS_STREAK_SIZES[0],
+        totalLossAmount: saved.totalLossAmount || 0,
+        lastTradeResult: saved.lastTradeResult || null,
       };
       console.log("✅ State restored from MongoDB:", currentState);
+      console.log(
+        `📊 Current loss streak: ${
+          currentState.currentLossStreak + 1
+        }, Order value: $${currentState.currentOrderValue}`
+      );
     }
   } catch (err) {
     console.error("❌ Failed to load state:", err);
@@ -93,10 +154,13 @@ async function logTradeResult(tradeData) {
   try {
     const trade = {
       symbol: SYMBOL,
-      quantity: QUANTITY,
+      quantity: tradeData.quantity || BASE_QUANTITY,
       leverage: LEVERAGE,
       tpPercent: TP_PERCENT,
       slPercent: SL_PERCENT,
+      orderValueUSD: currentState.currentOrderValue,
+      lossStreak: currentState.currentLossStreak,
+      totalLossAmount: currentState.totalLossAmount,
       ...tradeData,
       createdAt: new Date(),
     };
@@ -119,15 +183,25 @@ async function updateStats(trade) {
       winTrades: 0,
       lossTrades: 0,
       totalProfit: 0,
+      totalLossFromStreak: 0,
     };
 
     stats.totalTrades += 1;
     if (trade.result === "WIN") {
       stats.winTrades += 1;
-      stats.totalProfit += QUANTITY * currentState.entryPrice * TP_PERCENT;
+      const profit =
+        (trade.quantity || BASE_QUANTITY) *
+        currentState.entryPrice *
+        TP_PERCENT;
+      stats.totalProfit += profit;
     } else if (trade.result === "LOSS") {
       stats.lossTrades += 1;
-      stats.totalProfit -= QUANTITY * currentState.entryPrice * SL_PERCENT;
+      const loss =
+        (trade.quantity || BASE_QUANTITY) *
+        currentState.entryPrice *
+        SL_PERCENT;
+      stats.totalProfit -= loss;
+      stats.totalLossFromStreak = currentState.totalLossAmount;
     }
 
     stats.winRate =
@@ -141,7 +215,7 @@ async function updateStats(trade) {
       .replaceOne({ botId: "main" }, stats, { upsert: true });
 
     console.log(
-      `📊 Stats: ${stats.winTrades}W/${stats.lossTrades}L (${stats.winRate}% win rate)`
+      `📊 Stats: ${stats.winTrades}W/${stats.lossTrades}L (${stats.winRate}% win rate) | Total Loss Streak: $${stats.totalLossFromStreak}`
     );
   } catch (err) {
     console.error("❌ Failed to update stats:", err);
@@ -338,7 +412,7 @@ async function getActualFillPrice(orderId, fallbackPrice, maxRetries = 5) {
 }
 
 // TP/SL Functions
-async function createTakeProfitOrder(entryPrice, symbol = SYMBOL) {
+async function createTakeProfitOrder(entryPrice, quantity, symbol = SYMBOL) {
   const TP_PRICE = (entryPrice * (1 + TP_PERCENT)).toFixed(2);
 
   try {
@@ -347,7 +421,8 @@ async function createTakeProfitOrder(entryPrice, symbol = SYMBOL) {
       side: "SELL",
       type: "TAKE_PROFIT_MARKET",
       stopPrice: TP_PRICE,
-      closePosition: true,
+      quantity: quantity.toString(),
+      reduceOnly: true,
     });
     console.log("✅ TP order created:", tpOrder);
     return { orderId: tpOrder.orderId, price: TP_PRICE, order: tpOrder };
@@ -357,7 +432,7 @@ async function createTakeProfitOrder(entryPrice, symbol = SYMBOL) {
   }
 }
 
-async function createStopLossOrder(entryPrice, symbol = SYMBOL) {
+async function createStopLossOrder(entryPrice, quantity, symbol = SYMBOL) {
   const SL_PRICE = (entryPrice * (1 - SL_PERCENT)).toFixed(2);
 
   try {
@@ -366,7 +441,8 @@ async function createStopLossOrder(entryPrice, symbol = SYMBOL) {
       side: "SELL",
       type: "STOP_MARKET",
       stopPrice: SL_PRICE,
-      closePosition: true,
+      quantity: quantity.toString(),
+      reduceOnly: true,
     });
     console.log("✅ SL order created:", slOrder);
     return { orderId: slOrder.orderId, price: SL_PRICE, order: slOrder };
@@ -376,17 +452,17 @@ async function createStopLossOrder(entryPrice, symbol = SYMBOL) {
   }
 }
 
-async function createTpSlOrders(entryPrice, options = {}) {
+async function createTpSlOrders(entryPrice, quantity, options = {}) {
   const { createTp = true, createSl = true, symbol = SYMBOL } = options;
   const result = {};
 
   if (createTp) {
-    const tp = await createTakeProfitOrder(entryPrice, symbol);
+    const tp = await createTakeProfitOrder(entryPrice, quantity, symbol);
     if (tp) result.tpOrderId = tp.orderId;
   }
 
   if (createSl) {
-    const sl = await createStopLossOrder(entryPrice, symbol);
+    const sl = await createStopLossOrder(entryPrice, quantity, symbol);
     if (sl) result.slOrderId = sl.orderId;
   }
 
@@ -430,6 +506,9 @@ async function monitorExistingPosition() {
         console.log("❓ Position closed by unknown reason (manual close?)");
       }
 
+      // อัพเดท loss streak
+      updateLossStreak(result);
+
       // Log trade result
       await logTradeResult({
         action: "position_closed",
@@ -443,6 +522,7 @@ async function monitorExistingPosition() {
         slPrice:
           finalSlStatus?.status === "FILLED" ? finalSlStatus.avgPrice : null,
         result: result,
+        quantity: parseFloat(pos.positionAmt) || BASE_QUANTITY,
       });
 
       await cancelAllOrders(SYMBOL);
@@ -468,9 +548,14 @@ async function monitorExistingPosition() {
         }`
       );
 
+      const currentQuantity = Math.abs(parseFloat(pos.positionAmt));
+
       if (!tpStatus || tpStatus.status === "CANCELED") {
         console.log("🔄 Recreating TP order...");
-        const newTp = await createTakeProfitOrder(currentState.entryPrice);
+        const newTp = await createTakeProfitOrder(
+          currentState.entryPrice,
+          currentQuantity
+        );
         if (newTp) {
           tpOrderId = newTp.orderId;
           currentState.tpOrderId = tpOrderId;
@@ -480,7 +565,10 @@ async function monitorExistingPosition() {
 
       if (!slStatus || slStatus.status === "CANCELED") {
         console.log("🔄 Recreating SL order...");
-        const newSl = await createStopLossOrder(currentState.entryPrice);
+        const newSl = await createStopLossOrder(
+          currentState.entryPrice,
+          currentQuantity
+        );
         if (newSl) {
           slOrderId = newSl.orderId;
           currentState.slOrderId = slOrderId;
@@ -510,6 +598,11 @@ async function startBot() {
 
     ws.on("open", () => {
       console.log("✅ WS connected");
+      console.log(
+        `📊 Current loss streak: ${
+          currentState.currentLossStreak + 1
+        }, Next order value: $${currentState.currentOrderValue}`
+      );
       reconnectDelay = 5000;
 
       clearInterval(pingInterval);
@@ -539,6 +632,19 @@ async function startBot() {
         console.log(`🔥 Buying at ${ask}`);
         hasPosition = true;
 
+        // คำนวณ quantity จาก USD value ปัจจุบัน
+        const quantity = calculateQuantityFromUSD(
+          currentState.currentOrderValue,
+          ask
+        );
+        console.log(
+          `💰 Order size: $${
+            currentState.currentOrderValue
+          } = ${quantity} BTC (Loss streak: ${
+            currentState.currentLossStreak + 1
+          })`
+        );
+
         // 1. ยกเลิก orders ทั้งหมด
         await cancelAllOrders(SYMBOL);
 
@@ -550,7 +656,7 @@ async function startBot() {
           symbol: SYMBOL,
           side: "BUY",
           type: "MARKET",
-          quantity: QUANTITY,
+          quantity: quantity.toString(),
         });
         console.log("✅ Buy order:", buy);
 
@@ -567,7 +673,7 @@ async function startBot() {
         currentState.entryPrice = actualFillPrice;
 
         // 6. สร้าง TP/SL
-        const tpSlResult = await createTpSlOrders(actualFillPrice);
+        const tpSlResult = await createTpSlOrders(actualFillPrice, quantity);
         currentState.tpOrderId = tpSlResult.tpOrderId;
         currentState.slOrderId = tpSlResult.slOrderId;
 
@@ -582,6 +688,7 @@ async function startBot() {
           tpOrderId: tpSlResult.tpOrderId,
           slOrderId: tpSlResult.slOrderId,
           targetPrice: TARGET_PRICE,
+          quantity: quantity,
         });
 
         let { tpOrderId, slOrderId } = tpSlResult;
@@ -617,6 +724,9 @@ async function startBot() {
               );
             }
 
+            // อัพเดท loss streak
+            updateLossStreak(result);
+
             // Log trade result
             await logTradeResult({
               action: "position_closed",
@@ -634,6 +744,7 @@ async function startBot() {
                   ? finalSlStatus.avgPrice
                   : null,
               result: result,
+              quantity: quantity,
             });
 
             await cancelAllOrders(SYMBOL);
@@ -647,6 +758,11 @@ async function startBot() {
             saveState(currentState);
 
             console.log("✅ Position closed and cleanup completed!");
+            console.log(
+              `📊 Next order will be: $${
+                currentState.currentOrderValue
+              } (Loss streak: ${currentState.currentLossStreak + 1})`
+            );
             closed = true;
             hasPosition = false;
           } else {
@@ -660,7 +776,7 @@ async function startBot() {
             );
 
             if (!tpStatus || tpStatus.status === "CANCELED") {
-              const newTp = await createTpSlOrders(actualFillPrice, {
+              const newTp = await createTpSlOrders(actualFillPrice, quantity, {
                 createSl: false,
               });
               if (newTp.tpOrderId) {
@@ -672,7 +788,7 @@ async function startBot() {
             }
 
             if (!slStatus || slStatus.status === "CANCELED") {
-              const newSl = await createTpSlOrders(actualFillPrice, {
+              const newSl = await createTpSlOrders(actualFillPrice, quantity, {
                 createTp: false,
               });
               if (newSl.slOrderId) {
@@ -715,7 +831,10 @@ async function startBot() {
 
 // == MAIN ==
 async function main() {
-  console.log("🚀 Starting Binance Trading Bot...");
+  console.log("🚀 Starting Binance Trading Bot with Loss Streak System...");
+  console.log(`📊 Loss Streak Settings: ${LOSS_STREAK_SIZES.join(" -> ")} USD`);
+  console.log(`📊 Max Loss Streak: ${MAX_LOSS_STREAK} trades`);
+  console.log(`📊 Loss Streak Enabled: ${LOSS_STREAK_ENABLED}`);
 
   // เชื่อมต่อ MongoDB
   await initDb();
@@ -751,4 +870,4 @@ async function main() {
 }
 
 // เริ่มบอท
-main().catch(console.error);
+// main().catch(console.error);

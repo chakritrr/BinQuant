@@ -1,0 +1,44 @@
+{
+  "name": "binquant",
+  "version": "1.0.0",
+  "description": "Advanced Trading System with STREAK Money Management",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "npx serve .",
+    "build": "echo 'No build process needed for static files'",
+    "test": "echo 'No tests specified'",
+    "lint": "echo 'No linting configured'"
+  },
+  "keywords": [
+    "crypto",
+    "trading",
+    "bot",
+    "streak",
+    "money-management",
+    "risk-management",
+    "binance",
+    "javascript"
+  ],
+  "author": "BinQuant Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/binquant.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/binquant/issues"
+  },
+  "homepage": "https://github.com/yourusername/binquant#readme",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+} 
